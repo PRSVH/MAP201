@@ -1,0 +1,325 @@
+#---- Exercice 1 ----
+# On utilise la base de donnees ferretti.csv. La description du jeu de donnees est disponible 
+# via le fichier description.pdf qui se trouve dans le repertoire “ ´ data”.
+# 1. Importer le jeu de donnees feretti.csv.
+# 2. Affecter la colonne diameter a l’objet ` D. Quel est le type de cette variable ? Calculer ses statistiques
+# descriptives.
+# 3. On suppose que D est un echantillon gaussien. Calculer les bornes de l’intervalle de confiance du 
+# diametre moyen (theorique) µ aux niveaux 90%, 95% et 99% avec la fonction t.test. Commenter.
+# 4. La colonne invasive nous renseigne si la tumeur est invasive ou pas. Calculer les intervalles de
+# confiance de µ au niveau 95% pour : 1) les tumeurs invasives, 2) les tumeurs non invasives. Commenter.
+#---- Q.1
+FE = read.table(file="data/ferretti.csv",header=TRUE,sep=";")
+
+#---- Q.2
+D = FE[,2]
+D  # variable quantitative continue
+summary(D)  # stats descriptives
+
+#---- Q.3
+t.test(D, conf.level=0.90)$conf.int
+t.test(D, conf.level=0.95)$conf.int
+t.test(D, conf.level=0.99)$conf.int
+# Par exemple, l'intervalle [12.36, 16.39] contient la moyenne théorique avec 95% de confiance.
+
+#---- Q.4
+I = FE[,4]
+DI = D[I=="yes"]  # diametres des tumeurs invasives
+DNI = D[I=="no"]  # diametres des tumeurs non invasives
+t.test(DI)$conf.int
+t.test(DNI)$conf.int
+# Les deux intervalles sont assez différents, mais ils se recoupent (entre 13.1 et 14.3)
+# On ne peut pas conclure que les tumeurs invasives ont un diamètre moyen significativement plus grand que celui des tumeurs non invasives
+
+
+#---- Exercice 2 ----
+#---- Q.1
+# On modélise le nombre d'oeufs fertiles issus de males irradiés par une loi binomiale.
+# Ses paramètres sont : 
+# n = 5636 ; le nombre d'oeufs pondus
+# et p ; la probabilité (inconnue) qu'un oeuf issu d'un male irradié soit fertile
+
+#---- Q.2
+# Comme n est grand, on peut approximer cette loi binomiale par la loi normale de paramètres :
+# moyenne mu = n*p
+# variance sig^2 = n*p*(1-p)
+
+#---- Q.3
+# F +- u_{1-alpha/2} * sqrt(F*(1-F)) / sqrt(n)
+# F est la fréquence empirique
+
+#---- Q.4
+# a)
+n = 5636  # taille de l'échantillon
+x = 4998  # nombre d'oeufs fertiles
+Fexpo = x/n  # fréquence empirique
+alpha = 0.05  # niveau de risque
+# b)
+u = qnorm(1-alpha/2)  # quantile u
+# c)
+bInf = Fexpo - u*sqrt(Fexpo*(1-Fexpo))/sqrt(n)
+bInf  # borne inférieure
+bSup = Fexpo + u*sqrt(Fexpo*(1-Fexpo))/sqrt(n)
+bSup  # borne supérieure
+
+#---- Q.5
+prop.test(x, n)$conf.int  # IC exact (en utilisant la vraie loi)
+# On voit que l'IC est proche de celui de la question 3.
+# En particulier, cela confirme que l'approximation gaussienne utilisée pour obtenir l'IC de la Q3 n'est pas délirante.
+# En pratique, on préfèrera l'IC exact calculé avec prop.test
+
+#---- Q.6
+# On modélise le nombre d'oeufs fertiles issus de males non irradiés par une loi binomiale.
+# Ses paramètres sont : 
+# n = 5834 ; le nombre d'oeufs pondus
+# et q ; la probabilité (inconnue) qu'un oeuf issu d'un male non irradié soit fertile
+
+#---- Q.7
+n = 6221  # taille de l'échantillon
+x = 5834  # nombre d'oeufs fertiles
+prop.test(x, n)$conf.int
+
+#---- Q.8
+# IC de Q.4 : [0.878, 0.895]
+# IC de Q.6 : [0.931, 0.944]
+# Les deux IC sont nettement différents : les valeurs de IC_4 sont inférieurs à celles de IC_6.
+# On peut conclure que l'irradiation a un effet significativement néfaste sur la fertilité des oeufs.
+
+
+#---- Exercice 3 ----
+#---- Q.1
+# Xbar +- u_{1-alpha/2}*sig/sqrt(n)
+
+#---- Q.2
+n = 90
+xbar = 4.38
+sig = 0.08
+xbar+c(-1,1)*qnorm(0.95)*sig^2/sqrt(n)
+xbar+c(-1,1)*qnorm(0.975)*sig^2/sqrt(n)
+xbar+c(-1,1)*qnorm(0.99)*sig^2/sqrt(n)
+xbar+c(-1,1)*qnorm(0.95)*sig/sqrt(n)
+xbar+c(-1,1)*qnorm(0.975)*sig/sqrt(n)  # IC de niveau 95%
+xbar+c(-1,1)*qnorm(0.99)*sig/sqrt(n)
+
+#---- Q.3
+# sqrt(n) >= u_{1-alpha/2}*sig/0.01
+(qnorm(0.95)*sig^2/0.01)^2
+(qnorm(0.95)*sig/0.01)^2
+(qnorm(0.95)*sig^2/0.01)
+(qnorm(0.975)*sig^2/0.01)^2
+(qnorm(0.975)*sig/0.01)^2  # taille d'échantillon minimale
+(qnorm(0.975)*sig^2/0.01)
+
+#---- Q.4
+# u_{1-alpha/2} = 0.01*sqrt(n)/sig
+alpha = 1-pnorm(0.01*sqrt(n)/sig)
+alpha = 2*( 1-pnorm(0.01*sqrt(n)/sig) )  # alpha
+alpha = 1-pnorm(0.01*sqrt(n)/sig^2)
+alpha = pnorm(0.01*sqrt(n)/sig)
+1-alpha  # niveau de confiance
+1-alpha/2
+
+
+#---- Exercice 4 ----
+#---- Q.1
+n = 100  # taille de l'échantillon
+xbar = 18.4  # moyenne empirique
+sig = 0.3  # écart-type théorique
+xbar+c(-1,1)*qnorm(0.975)*sig^2/sqrt(n)
+xbar+c(-1,1)*qnorm(0.99)*sig^2/sqrt(n)
+xbar+c(-1,1)*qnorm(0.995)*sig^2/sqrt(n)
+xbar+c(-1,1)*qnorm(0.975)*sig/sqrt(n)
+xbar+c(-1,1)*qnorm(0.99)*sig/sqrt(n)
+xbar+c(-1,1)*qnorm(0.995)*sig/sqrt(n)  # IC de niveau 99%
+
+#---- Q.2
+n = 153  # espèce 1
+n = 289  # espèce 2
+x = 31  # espèce 1
+x = 86  # espèce 2
+prop.test(x, n, conf.level = 0.95)$conf.int
+prop.test(x, n, conf.level = 0.99)$conf.int
+prop.test(x, n, conf.level = 0.90)$conf.int
+# IC à 99% pour espèce 1 : [0.1294416, 0.3014420]
+# IC à 99% pour espèce 2 : [0.2318997, 0.3725657]
+
+# Les IC les plus petits seront calculés pour un niveau de 90%
+# Même dans ce cas, les deux intervalles se chevauchent
+
+
+#---- Exercice bonus ----
+int.conf.asymp.proportion <- function(x, n, conf.level = 0.95)
+{
+  f = x/n
+  alpha = 1-conf.level
+  u = qnorm(1-alpha/2)
+  return(f + c(-1,1)*u*sqrt(f*(1-f))/sqrt(n))
+}
+int.conf.asymp.proportion(5834, 6221)
+
+
+
+#---- Exercice 5 ----
+#---- Q.1
+# Dr. C ne veut pas laisser partir son patient si ce dernier est en danger.
+# Ainsi, l'hypothese qu'on ne veut pas rejeter à tort est que le patient est en danger (mu >= 150).
+# On veut donc tester H0: "mu >= 150 (danger)" contre H1: "mu < 150 (pas de danger)"
+# c'est un test unilateral à gauche
+# Grossièrement, Dr. C part avec l'a priori d'alerter le patient. 
+# Il faut que le prélèvement démontre qu'il n'y a aucun danger pour qu'elle ne l'alerte pas.
+
+#---- Q.2
+# La statistique T vaut (X-mu0)/sig. La valeur observée est notée Tobs
+# Le test rejette H0 ssi Tobs < -u_{1-alpha}
+
+#---- Q.3
+mu0 = 150; sig = 5  # parametres
+Xobs = 140  # observation
+Tobs = (Xobs-150)/5  # statistique de test
+Tobs < -qnorm(0.95)  # rejet de H0 : le patient n'est pas à risque
+# Rmq : on peut remplacer -qnorm(0.95) par qnorm(0.05) -- symétrie de N(0,1)
+
+#---- Q.4
+# On s'attend à alpha* < 0.05
+# -u_{1-alpha*} = Tobs --> 1-alpha* = pnorm(-Tobs) 
+1-pnorm(-Tobs)  # p-valeur = 0.023 < 0.05. On rejette bien H0 au risque de 5%
+# Rmq : on peut remplacer 1-pnorm(-Tobs) par pnorm(Tobs) -- symétrie de N(0,1)
+
+#---- Q.5
+# Dr. H ne veut pas alerter son patient si ce dernier n'est pas en danger.
+# Ainsi, l'hypothese qu'on ne veut pas rejeter à tort est que le patient n'est pas en danger (mu <= 150).
+# On veut donc tester H0: "mu <= 150 (pas de danger)" contre H1: "mu > 150 (danger)"
+# c'est un test unilateral à droite
+
+#---- Q.6
+# a) La statistique T vaut encore (X-mu0)/sig. La valeur observée est notée Tobs
+# b) Le test rejette H0 ssi Tobs > u_{1-alpha}
+
+#---- Q.7
+# Les résultats sont attendus : 
+# Dr. H attend que le prélèvement soit significativement plus grand que 150 pour l'alerter
+# Avec un prélèvement observé égal à 140, c'est évident qu'il ne va pas alerter.
+Tobs > qnorm(0.95)  # non rejet de H0 : le patient n'est pas à risque
+1-pnorm(Tobs)  # p-valeur = 0.977 > 0.05. On ne rejette pas H0 au risque de 5%
+
+
+#---- Exercice 6 ----
+#---- Q.1
+# Dr. H ne veut pas inquiéter son patient si ce dernier est sain.
+# Ainsi, l'hypothese qu'on ne veut pas rejeter à tort est que le patient est sain (mu = -1).
+# On veut donc tester H0: "mu = -1 (patient sain)" contre H1: "mu > -1 (patient plutôt à risque)"
+# c'est un test unilateral a droite
+
+#---- Q.2
+# a) La statistique T vaut (X-mu0)/sig. La valeur observée est notée Tobs
+# b) Le test rejette H0 ssi Tobs > u_{1-alpha}
+# c) Comme Tobs = (Xobs-mu0)/sig, on en déduit que 
+# le test rejette H0 ssi Xobs > mu0 + u_{1-alpha}*sig
+# d) 
+mu0 = -1; sig = 0.3
+mu0 + qnorm(0.95)*sig  # seuil à 5%
+qnorm(0.95,mu0,sig)  # idem
+
+qnorm(0.99,mu0,sig)  # seuil à 1%
+
+#---- Q.3
+# -0.46 > seuil à 5% --> rejet de H0 --> considéré à risque pour ce seuil
+# -0.46 < seuil à 1% --> non rejet de H0 --> non considéré à risque pour ce seuil
+# On s'attend à trouver une p-valeur comprise entre 1% et 5%.
+1 - pnorm(-0.46,mu0,sig)  # p-valeur
+
+#---- Q.4
+# Dr. C ne veut pas manquer d'alerter son patient si ce dernier est à risque.
+# Ainsi, l'hypothese qu'on ne veut pas rejeter à tort est que le patient est à risque (mu = 0).
+# On veut donc tester H0: "mu = 0 (patient à risque)" contre H1: "mu < 0 (patient plutôt sain)"
+# c'est un test unilateral à gauche
+
+#---- Q.5
+# Le test rejette H0 ssi Xobs < mu0 - u_{1-alpha}*sig (valeur seuil)
+qnorm(0.05, 0, 0.3)  # seuil à 5%
+qnorm(0.01, 0, 0.3)  # seuil à 1%
+
+#---- Q.6
+# -0.46 > seuil à 5% --> non rejet de H0 --> considéré à risque pour ce seuil
+# -0.46 > seuil à 1% --> non rejet de H0 --> considéré à risque pour ce seuil
+# On s'attend à trouver une p-valeur supérieure à 5%.
+pnorm(-0.46, 0, 0.3)  # p-valeur
+
+#---- Q.7
+qnorm(0.99, -1, 0.3)  # seuil House
+qnorm(0.01, 0, 0.3)  # seuil Cuddy
+# Si X < -0.70 : les deux docteurs n'alertent pas le patient
+# Si -0.70 < X < -0.30 : H. n'alerte pas et C. alerte
+# Si -0.30 < X : les deux docteurs alertent
+
+
+#---- Exercice 7 ----
+#---- Q.1
+# a) H0: "mu = 1000" contre H1: "mu != 1000"
+# b) La statistique T vaut sqrt(n)*(Xbar-mu0)/sig. La valeur observée est notée Tobs
+# c) Le test rejette H0 ssi |Tobs| > u_{1-alpha/2}
+# d) Comme Tobs = sqrt(n)*(Xobs-mu0)/sig, on en déduit que 
+# le test rejette H0 ssi Xobs > mu0 + u_{1-alpha/2}*sig/sqrt(n) ou Xobs < mu0 - u_{1-alpha/2}*sig/sqrt(n)
+mu0 = 1000; n = 10; sig = 20/sqrt(n)
+qnorm(c(0.025,0.975),mu0,sig)  # valeurs seuils à 5%
+qnorm(c(0.05,0.95),mu0,sig)
+qnorm(c(0.005,0.995),mu0,sig)  # valeurs seuils à 1%
+qnorm(0.99,mu0,sig)
+qnorm(0.975,mu0,sig)
+qnorm(0.95,mu0,sig)
+qnorm(0.05,mu0,sig)
+qnorm(0.025,mu0,sig)
+qnorm(0.01,mu0,sig)
+# e) Xobs = 990 n'est pas dans la zone de rejet à 5% (et a fortiori pas dans celle à 1%). On ne rejette pas H0.
+# La moyenne des paquets n'est pas significativement différente de 1000.
+# f) la p-valeur doit être plus grande que 5%
+# g) u_{1-alpha*/2} = |Tobs| (voir question c)
+# donc 1-alpha*/2 = pnorm(abs(Tobs)) --> alpha* = 2*(1-pnorm(abs(Tobs)))
+2*(1-pnorm(abs(Tobs)))
+2*pnorm(990, mu0, sig)
+
+#---- Q.2
+n = 100; sig = 20/sqrt(n)
+qnorm(c(0.025,0.975),mu0,sig)  # valeurs seuils à 5%
+qnorm(c(0.005,0.995),mu0,sig)  # valeurs seuils à 1%
+# Xobs = 990 est dans la zone de rejet à 5% (et a fortiori dans celle à 1%). On rejette H0.
+# La moyenne des paquets est significativement différente de 1000.
+# On voit que pour une même valeur observée, la décision peut être différente si on change la taille de l'échantillon.
+2*pnorm(990, mu0, sig)  # p-valeur
+
+#---- Q.3
+# a) Le directeur de l'usine teste H0: "mu <= 1000" contre H1: "mu > 1000" : rejet de H0 --> il blame le responsable de production
+# b) L'association de consommateurs teste H0: "mu >= 1000" contre H1: "mu < 1000" : rejet de H0 --> elle attaque la compagnie
+# c)
+n = 10; sig = 20/sqrt(n)
+2*(1-pnorm(1010,mu0,sig))  # p-valeur responsable
+2*pnorm(1010,mu0,sig)
+2-pnorm(1010,mu0,sig)
+1-pnorm(1010,mu0,sig)  # p-valeur directeur
+pnorm(1010,mu0,sig)  # p-valeur association
+# Remarques :
+# - 1010 est plutôt une grande valeur,
+# - donc beaucoup trop grande pour que l'association attaque (p-valeur = 0.94 >> 0.05),
+# - mais pas assez grande pour que le directeur blame (p-valeur = 0.06 > 0.05),
+# - parmi les 2 valeurs "2*pnorm(Xobs,mu0,sig)" et "2*(1-pnorm(Xobs,mu0,sig))", 
+# il n'y en a qu'une seule qui est < 1. 
+# C'est cette dernière qui donne la p-valeur du test bilatéral.
+
+
+#---- Exercice bonus ----
+test.conformite.var.connue <- function(x, mu0, sig2, type = "bilateral", alpha = 0.05)
+{
+  xbar = mean(x)
+  n = length(x)
+  sig = sqrt(sig2)
+  t = sqrt(n)*(xbar-mu0)/sig  # statistique de test
+  rejet = switch(type,            # La fonction switch permet de faire une action en fonction de la valeur d'une chaine de caractère (type dans notre exemple)
+             gauche = t<qnorm(alpha),
+             droite = t>qnorm(1-alpha),
+             bilateral = abs(t)>qnorm(1-alpha/2)
+             )
+  decision = ifelse(rejet, "Le test rejette l'hypothèse nulle", "Le test ne rejette pas l'hypothèse nulle") # La fonction ifelse permet de faire une disjonction de cas de manière condensée
+  return(decision)
+}
+x = rnorm(10) # échantillon simulé de loi normale centrée réduite. Du coup, la fonction du dessus renvoie un rejet de H0 dans 5% des cas.
+test.conformite.var.connue(x, 0, 1, "bilateral")
