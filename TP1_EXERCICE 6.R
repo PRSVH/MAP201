@@ -1,6 +1,6 @@
-#Exercice 6 FROM 2) to 6)_TP1/Ivanina Ivanova, Preshtibye Raggoo, MIN-INT, 26/03/21
+#Exercice 6 FROM 2) to 6)_TP1/
 TBosson = read.table(file="data/bosson.csv", header=TRUE, sep=";")
-TBosson[1:6,] #Affiche les 6 premières lignes du tableau TBosson
+TBosson[1:6,] #Affiche les 6 premiÃ¨res lignes du tableau TBosson
 C = TBosson[, "country"] #Vector of type string/character
 C = TBosson$country #Retourne la colonne country ; Type character
 C
@@ -10,7 +10,7 @@ A = TBosson[,"aneurysm"]#Retourne la colonne aneurysm;Type Int
 A
 R = TBosson[,"risk"]#Retourne la colonne risk; Type int
 R
-TBosson[120:123,] #Affiche les lignes 120 à 123
+TBosson[120:123,] #Affiche les lignes 120 Ã  123
 TBosson[c(67,83,101), c(1,3)]#Affiche les colonnes 1 et 3 des lignes 67, 83, 101
 TBosson[C=="Vietnam", ]
 TBosson[G=="M",5]
